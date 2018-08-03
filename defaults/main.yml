@@ -1,8 +1,12 @@
 # Source location of the certificate file
 gitlab_certificate_file: ""
 # Source location of the private key
-
 gitlab_private_key_file: ""
 gitlab_enable_tls: false
+gitlab_tls_port: 443
 
 gitlab_www_user: gitlab-www
+
+gitlab_external_fqdn: gitlab.local
+
+gitlab_auto_reconfigure: true
