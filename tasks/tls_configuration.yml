@@ -1,22 +1,61 @@
+- name: Create SSL directory
+  file:
+    path: /etc/gitlab/ssl
+    state: directory
+    owner: root
+    group: root
+    mode: 0750
+
+- name: Set external url to https
+  replace:
+    path: /etc/gitlab/gitlab.rb
+    regexp: "external_url 'http.*"
+    replace: "external_url 'https://{{ gitlab_external_fqdn }}'"
+
 - name: Upload Certificate
   copy:
     src: "{{ gitlab_certificate_file }}"
-    dest: "/etc/gitlab/ssl/gitlab.crt"
-    mode: 0740
-    owner: "{{ gitlab_user }}"
-    group: "{{ gitlab_user }}"
-
-- name: Upload Private Key
-  copy:
-    src: "{{ gitlab_private_key_file }}"
-    dest: "/etc/gitlab/ssl/gitlab.key"
+    dest: "/etc/gitlab/ssl/{{ gitlab_external_fqdn }}.crt"
     mode: 0740
     owner: "{{ gitlab_www_user }}"
     group: "{{ gitlab_www_user }}"
 
+- name: Configure Certificate location
+  lineinfile:
+    path: /etc/gitlab/gitlab.rb
+    regexp: "nginx\\[\\'ssl_certificate\\'\\]"
+    line:   "nginx['ssl_certificate'] = '/etc/gitlab/ssl/{{ gitlab_external_fqdn }}.crt'"
+    state: present
+    backrefs: true
+
+- name: Upload Private Key
+  copy:
+    src: "{{ gitlab_private_key_file }}"
+    dest: "/etc/gitlab/ssl/{{ gitlab_external_fqdn }}.key"
+    mode: 0740
+    owner: "{{ gitlab_www_user }}"
+    group: "{{ gitlab_www_user }}"
+
+- name: Configure Key location
+  lineinfile:
+    path: /etc/gitlab/gitlab.rb
+    regexp: "nginx\\[\\'ssl_certificate_key\\'\\]"
+    line:   "nginx['ssl_certificate_key'] = '/etc/gitlab/ssl/{{ gitlab_external_fqdn }}.key'"
+    state: present
+    backrefs: true
+
 - name: Configure HTTPS redirection
   lineinfile:
     path: /etc/gitlab/gitlab.rb
-    regexp: "nginx['redirect_http_to_https']"
-    line: "nginx['redirect_http_to_https'] = true"
+    regexp: "nginx\\[\\'redirect_http_to_https\\'\\]"
+    line:   "nginx['redirect_http_to_https'] = true"
     state: present
+    backrefs: true
+
+- name: Reconfigure gitlab
+  command: gitlab-ctl reconfigure
+  when: gitlab_auto_reconfigure == True
+
+- name: Restart nginx
+  command: gitlab-ctl restart
+  when: gitlab_auto_reconfigure == True
