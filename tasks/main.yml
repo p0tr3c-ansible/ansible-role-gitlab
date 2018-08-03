@@ -1,3 +1,16 @@
+- name: Set external url
+  replace:
+    path: /etc/gitlab/gitlab.rb
+    regexp: "external_url 'http.*"
+    replace: "external_url 'http://{{ gitlab_external_fqdn }}'"
+
+- name: Enable NGINX
+  lineinfile:
+    path: /etc/gitlab/gitlab.rb
+    regexp: "nginx\\['enabled'\\] "
+    line: "nginx['enabled'] = true"
+    state: present
+
 - name: Configure TLS
   include_tasks: tls_configuration.yml
   when: gitlab_enable_tls == True
