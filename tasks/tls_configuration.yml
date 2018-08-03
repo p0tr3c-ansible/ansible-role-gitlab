@@ -1,0 +1,22 @@
+- name: Upload Certificate
+  copy:
+    src: "{{ gitlab_certificate_file }}"
+    dest: "/etc/gitlab/ssl/gitlab.crt"
+    mode: 0740
+    owner: "{{ gitlab_user }}"
+    group: "{{ gitlab_user }}"
+
+- name: Upload Private Key
+  copy:
+    src: "{{ gitlab_private_key_file }}"
+    dest: "/etc/gitlab/ssl/gitlab.key"
+    mode: 0740
+    owner: "{{ gitlab_www_user }}"
+    group: "{{ gitlab_www_user }}"
+
+- name: Configure HTTPS redirection
+  lineinfile:
+    path: /etc/gitlab/gitlab.rb
+    regexp: "nginx['redirect_http_to_https']"
+    line: "nginx['redirect_http_to_https'] = true"
+    state: present

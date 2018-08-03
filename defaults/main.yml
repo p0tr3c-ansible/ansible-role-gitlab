@@ -1,0 +1,8 @@
+# Source location of the certificate file
+gitlab_certificate_file: ""
+# Source location of the private key
+
+gitlab_private_key_file: ""
+gitlab_enable_tls: false
+
+gitlab_www_user: gitlab-www

@@ -1,0 +1,3 @@
+- name: Configure TLS
+  include_tasks: tls_configuration.yml
+  when: gitlab_enable_tls == True
